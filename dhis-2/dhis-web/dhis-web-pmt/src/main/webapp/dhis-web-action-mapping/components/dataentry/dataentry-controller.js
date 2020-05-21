@@ -433,8 +433,7 @@ sunPMT.controller('dataEntryController',
             co: ocId,
             cc: $scope.model.selectedAttributeCategoryCombo.id,
             cp: CommonUtils.getOptionIds($scope.model.selectedOptions),
-            value: $scope.model.dataValues[ouId][deId][ocId].value,
-            comment: $scope.model.stakeholderRoles[ouId][deId] ? JSON.stringify( $scope.model.stakeholderRoles[ouId][deId] ) : ""
+            value: $scope.model.dataValues[ouId][deId][ocId].value
         };
         
         if ( !dataValue.value ){
