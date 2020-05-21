@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+        [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+        >
+<hibernate-mapping>
+    <class name="org.hisp.dhis.relationship.Relationship" table="relationship">
+
+        <cache usage="read-write"/>
+
+        <id name="id" column="relationshipid">
+            <generator class="native"/>
+        </id>
+
+        &identifiableProperties;
+
+        <property name="formName" type="text"/>
+
+        <property name="description" type="text"/>
+
+        <property name="style" type="jbObjectStyle" column="style"/>
+
+        <many-to-one name="relationshipType"
+                     class="org.hisp.dhis.relationship.RelationshipType"
+                     column="relationshiptypeid"
+                     foreign-key="fk_relationship_relationshiptypeid"
+                     not-null="true"/>
+
+        <many-to-one name="from" class="org.hisp.dhis.relationship.RelationshipItem"
+                     column="from_relationshipitemid"
+                     foreign-key="fk_relationship_from_relationshipitemid"
+                     not-null="false"
+                     unique="true"
+                     cascade="all-delete-orphan"/>
+
+        <many-to-one name="to" class="org.hisp.dhis.relationship.RelationshipItem"
+                     column="to_relationshipitemid"
+                     foreign-key="fk_relationship_to_relationshipitemid"
+                     not-null="false"
+                     unique="true"
+                     cascade="all-delete-orphan"/>
+
+    </class>
+</hibernate-mapping>

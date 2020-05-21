@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.trackedentity.TrackedEntityType" table="trackedentitytype">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="trackedentitytypeid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="true" length="230" />
+
+    <property name="description" type="text" />
+
+    <property name="formName" type="text" />
+
+    <property name="style" type="jbObjectStyle" column="style" />
+
+    <property name="minAttributesRequiredToSearch" />
+
+    <property name="maxTeiCountToReturn" />
+    
+    <property name="allowAuditLog" />
+
+    <property name="translations" type="jblTranslations"/>
+
+    <property name="featureType" column="featuretype">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.organisationunit.FeatureType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <list name="trackedEntityTypeAttributes" cascade="all-delete-orphan">
+      <key column="trackedentitytypeid" />
+      <list-index column="sort_order" base="1" />
+      <one-to-many class="org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute" />
+    </list>
+
+    <!-- Dynamic attribute values -->
+    <property name="attributeValues" type="jsbAttributeValues"/>
+
+    <!-- Access properties -->
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_trackedentitytype_userid" />
+
+    <property name="publicAccess" length="8" />
+
+    <set name="userGroupAccesses" table="trackedentitytypeusergroupaccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="trackedentitytypeid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="trackedentitytypeuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="trackedentitytypeid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
+
+  </class>
+
+</hibernate-mapping>
