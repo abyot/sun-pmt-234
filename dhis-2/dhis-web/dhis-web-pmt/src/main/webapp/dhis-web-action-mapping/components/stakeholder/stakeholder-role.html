@@ -1,0 +1,39 @@
+<div class="modal-header page">
+    <h2>{{'additional_stakeholders_for'| translate}} <span class="bold">{{currentOrgUnitName}}</span></h2>
+    <span>{{'update_stakeholder_heading'| translate}}</span>
+</div>
+<div class="modal-body">
+
+    <div class="col-sm-12 selectionArea vertical-spacing" ng-if="program" ng-repeat="oco in optionCombos">
+        <div class="alert alert-info">{{oco.displayName}}</div>
+        <table class="table table-bordered table-condensed small-vertical-spacing table-bordered-selection-area">
+            <thead>
+                <tr>
+                    <td ng-repeat="prStDe in program.programStages[0].programStageDataElements| orderBy: 'sortOrder'">
+                        <i class="fa fa-question-circle superscript" tooltip="{{prStDe.dataElement.description}}" tooltip-class="custom-tooltip-class"></i>
+                        {{prStDe.dataElement.displayName}}
+                    </td>
+                </tr>
+            </thead>                            
+            <tr>
+                <td ng-repeat="prStDe in program.programStages[0].programStageDataElements| orderBy: 'sortOrder'">                    
+                    <ui-select multiple 
+                               ng-model="stakeholderRoles[oco.id][prStDe.dataElement.id]" 
+                               on-select="saveRole(oco.id, prStDe.dataElement.id)"
+                               on-remove="saveRole(oco.id, prStDe.dataElement.id)"
+                               theme="bootstrap">                        
+                        <ui-select-match placeholder="{{'select_or_search' | translate}}">{{$item.displayName}}</ui-select-match>
+                        <ui-select-choices repeat="option.displayName as option in optionSets[prStDe.dataElement.optionSet.id].options | filter: $select.search | limitTo:maxOptionSize">
+                            <div ng-bind-html="option.displayName | highlight: $select.search"></div>
+                        </ui-select-choices>
+                    </ui-select>
+                </td>
+            </tr>
+        </table>
+    </div>
+    
+</div>
+<div class="modal-footer">        
+    <button class="btn btn-primary trim" ng-disabled="stakeholderAddStarted" ng-click="close()">{{'save'| translate}}</button>
+    <button class="btn btn-default" ng-disabled="stakeholderAddStarted" ng-click="close()">{{'cancel'| translate}}</button>    
+</div>

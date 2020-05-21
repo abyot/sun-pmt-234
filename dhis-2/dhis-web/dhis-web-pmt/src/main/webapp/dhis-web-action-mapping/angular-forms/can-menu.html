@@ -1,0 +1,34 @@
+<div class="row col-sm-12" ng-controller="CANMenuController">
+    <div class="yellowInfoArea">
+
+        <p class="bold">
+            {{'can_title' | translate}}
+        </p>
+        <p>
+            {{'can_sub_title' | translate}}
+        </p>
+        <p class="italic">
+            <span class="bold">{{'click' | translate}} 
+                <a href="http://www.reachpartnership.org/documents/312104/fa572e1e-b8a9-48bf-89c0-cd3afb203c60" target="_blank">
+                    <span class="black underline">{{'here'| translate}}</span>
+                </a>
+                {{'view_full_can_doc'| translate}}
+            </span>
+            <span> {{'view_each_can_doc' | translate}}</span>
+        </p>
+        <ul class="list-group">
+            <li class="remove-text-decoration" ng-repeat="icon in icons">
+                <a href="{{icon.href}}" target="_blank">
+                    <div class="cursor-pointer" ng-class="getIconClass(icon)">
+                        <div class="thumbnail1">
+                            <img ng-src="{{icon.src}}" alt="{{icon.alt | translate}}" class="align-center img-responsive">
+                        </div>
+                        <div class="bold caption pull-center small-vertical-spacing">
+                            {{icon.alt | translate}}
+                        </div>
+                    </div>
+                </a>            
+            </li>
+        </ul>
+    </div>    
+</div>
