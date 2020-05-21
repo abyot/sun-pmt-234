@@ -27,15 +27,10 @@ sunPMT.controller('GeoCoverageController',
         dataSets: null,
         selectedDataSets: [],
         ouLevels: [],
-        programs: null,
-        programsByCode: [],
-        programCodesById: [],
         dataElementsByCode: [],
         dataSetsByDataElementId: [],
-        selectedPrograms: null,
         selectedRole: null,
         mappedOptionCombos: null,
-        roleDataElementsById: null,
         reportDataElements: null,
         whoDoesWhatCols: [],
         mappedValues: null,
@@ -60,8 +55,6 @@ sunPMT.controller('GeoCoverageController',
         resetParams();
         if( angular.isObject($scope.selectedOrgUnit)){
 
-            $scope.model.programs = [];
-            $scope.model.roleDataElementsById = [];
             $scope.model.roleDataElements = [];
             $scope.model.mappedRoles = {};
             
@@ -247,7 +240,6 @@ sunPMT.controller('GeoCoverageController',
             var reportData = {
                 mappedRoles: $scope.model.mappedRoles,
                 programCodesById: $scope.model.programCodesById,
-                roleDataElementsById: $scope.model.roleDataElementsById,
                 whoDoesWhatCols: $scope.model.whoDoesWhatCols,
                 availableRoles: $scope.model.availableRoles,
                 mappedOptionCombos: $scope.model.mappedOptionCombos,
