@@ -16,6 +16,7 @@ sunPMT.controller('PopCoverageController',
                 DataSetFactory,
                 CommonUtils,
                 OptionComboService,
+                NotificationService,
                 ReportService) {
     $scope.periodOffset = 0;
     $scope.showReportFilters = true;
@@ -30,13 +31,7 @@ sunPMT.controller('PopCoverageController',
         selectedDataSets: [],
         targetDataSets: null,
         ouLevels: [],
-        programs: null,
-        programsByCode: [],
-        programCodesById: [],
-        dataElementsByCode: [],
-        dataElementCodesById: [],
         dataSetsByDataElementId: [],
-        selectedPrograms: null,
         selectedRole: null,
         mappedOptionCombos: null,
         roleDataElementsById: null,
@@ -66,96 +61,115 @@ sunPMT.controller('PopCoverageController',
         $scope.model.selectedRole = null;
         resetParams();
         if( angular.isObject($scope.selectedOrgUnit)){
+
+            $scope.model.mappedRoles = {};
             
-            CommonUtils.getChildrenIds($scope.selectedOrgUnit).then(function(response){
-                $scope.model.childrenIds = response.childrenIds;
-                $scope.model.children = response.children;
-                $scope.model.childrenByIds = response.childrenByIds;
-                $scope.model.allChildren = response.allChildren;
+            $scope.model.mappedOptionCombos = [];
+            OptionComboService.getMappedOptionCombos().then(function(ocos){
+                $scope.model.mappedOptionCombos = ocos;
             });
-            
-            $scope.model.programs = [];
-            $scope.model.roleDataElementsById = [];
-            $scope.model.roleDataElements = [];
-            MetaDataFactory.getAll('programs').then(function(programs){
-                $scope.model.programs = programs;
-                angular.forEach(programs, function(program){
-                    if( program.programStages && program.programStages[0] && program.programStages[0].programStageDataElements ){
-                        angular.forEach(program.programStages[0].programStageDataElements, function(prStDe){
-                            if( prStDe.dataElement && prStDe.dataElement.id && !$scope.model.roleDataElementsById[prStDe.dataElement.id]){                                
-                                $scope.model.roleDataElementsById[prStDe.dataElement.id] = {displayName:  prStDe.dataElement.displayName, sortOrder: prStDe.sortOrder};
-                            }                            
-                        });
-                    }                    
-                    $scope.model.programsByCode[program.actionCode] = program;
-                    $scope.model.programCodesById[program.id] = program.actionCode;
-                });
-                
-                for( var k in $scope.model.roleDataElementsById ){
-                    if( $scope.model.roleDataElementsById.hasOwnProperty( k ) ){
-                        $scope.model.roleDataElements.push( {id: k, displayName: $scope.model.roleDataElementsById[k].displayName, sortOrder: $scope.model.roleDataElementsById[k].sortOrder, domain: 'EV'} );
-                    }
-                }
-            });
-            
-            MetaDataFactory.getAll('ouLevels').then(function(ouLevels){
-                angular.forEach(ouLevels, function(ol){
-                    $scope.model.ouLevels[ol.level] = ol.displayName;
-                });                    
-                var res = CommonUtils.populateOuLevels($scope.selectedOrgUnit, $scope.model.ouLevels);
-                $scope.model.ouModes = res.ouModes;
-                $scope.model.selectedOuMode = res.selectedOuMode;
-                
-                $scope.model.mappedOptionCombos = [];
-                OptionComboService.getMappedOptionCombos().then(function(ocos){
-                    $scope.model.mappedOptionCombos = ocos;
-                });
-            });            
             
             $scope.model.categoryCombos = {};
-            $scope.model.stakeholderCategories = [];
-            $scope.model.pushedCategoryIds = [];
+            $scope.model.categoryCodeById = {};
+            $scope.model.mappedCategoryOptions = {};
+
             MetaDataFactory.getAll('categoryCombos').then(function(ccs){
                 angular.forEach(ccs, function(cc){
+                    if( cc.code === 'DM-FI' && cc.categories && cc.categories.length > 0 ){
+                        $scope.model.keyCategories = cc.categories;
+                        angular.forEach(cc.categories, function(ca){
+                            var options = {};
+                            ca.categoryOptions.forEach(function(op){
+                                options[op.id] = op.displayName;
+                                $scope.model.mappedCategoryOptions[op.displayName] = ca.code;
+                            });
+                            ca.categoryOptions = options;
+
+                            $scope.model.categoryCodeById[ca.id] = ca;
+                            if( ca.code === 'FI') {
+                                $scope.model.fiCategory = ca;
+                                $scope.model.whoDoesWhatCols.push( {id: ca.code, displayName: ca.displayName, sortOrder: 1, domain: 'str'} );
+                            }
+                            else if( ca.code === 'DM') {
+                                $scope.model.dmCategory = ca;
+                                $scope.model.whoDoesWhatCols.push( {id: ca.code, displayName: ca.displayName, sortOrder: 0, domain: 'dmc'} );
+                            }
+                        });
+                    }
                     $scope.model.categoryCombos[cc.id] = cc;
                 });
-                
-                $scope.model.indicators = [];
-                $scope.model.dataSets = [];
-                $scope.model.targetDataSets = [];
-                MetaDataFactory.getAll('indicatorGroups').then(function(idgs){                
-                    idgs = $filter('filter')(idgs, {isAction: true});
-                    angular.forEach(idgs, function(idg){                    
-                        if( idg.indicators && idg.indicators.length > 0 ){
-                            $scope.model.indicators = $scope.model.indicators.concat( idg.indicators );
+
+                $scope.model.availableRoles = {};
+
+                $scope.model.stakeholderCategories = [];
+                $scope.model.pushedCategoryIds = [];
+                MetaDataFactory.getByProperty('optionSets', 'code', 'str').then(function(optionSet){
+                    $scope.model.stakeholderInfo = optionSet;
+                    if(!$scope.model.stakeholderInfo || $scope.model.stakeholderInfo.code !== 'str'){
+                        NotificationService.showNotifcationDialog('error', 'invalid_stakeholder_info_configuration');
+                        return;
+                    }
+
+                    var i=0;
+                    angular.forEach(optionSet.options, function(option){
+                        var domain = 'str';
+                        if(option.code){
+                            option.code = option.code.toLocaleLowerCase();
+                            if(option.code === 'rmi' || option.code === 'sdm'){
+                                domain = option.code;
+                            }
                         }
+
+                        $scope.model.whoDoesWhatCols.push( {id: option.code, displayName: option.displayName, sortOrder: i, domain: domain} );
+                        $scope.model.mappedRoles[option.code] = {};
+                        i++;
                     });
 
-                    DataSetFactory.getActionAndTargetDataSets().then(function(dataSets){
-                        $scope.model.dataSets = dataSets;                
-                        angular.forEach($scope.model.dataSets, function(ds){
-                            if( ds.dataSetType === 'action'){
-                                if( ds.dataElements && ds.dataElements[0] && ds.dataElements[0].code ){
-                                    $scope.model.dataElementsByCode[ds.dataElements[0].code] = ds.dataElements[0];
-                                    $scope.model.dataSetsByDataElementId[ds.dataElements[0].id] = ds;
-                                    var res = CommonUtils.getStakeholderCategoryFromDataSet(ds, $scope.model.categoryCombos, $scope.model.stakeholderCategories, $scope.model.pushedCategoryIds);
-                                    $scope.model.stakeholderCategories = res.categories;
-                                    $scope.model.pushedCategoryIds = res.categoryIds;
-                                }
+                    angular.forEach($scope.model.whoDoesWhatCols, function(col){
+                        $scope.model.availableRoles[col.id] = [];
+                    });
+
+                    $scope.model.indicators = [];
+                    $scope.model.dataSets = [];
+                    $scope.lowestLevel = 0;
+                    $scope.model.targetDataSets = [];
+                    MetaDataFactory.getAll('indicatorGroups').then(function(idgs){
+                        idgs = $filter('filter')(idgs, {isAction: true});
+                        angular.forEach(idgs, function(idg){
+                            if( idg.indicators && idg.indicators.length > 0 ){
+                                $scope.model.indicators = $scope.model.indicators.concat( idg.indicators );
                             }
-                            else{
-                                $scope.model.targetDataSets.push( ds );
-                            }                        
                         });
-                        
-                        var len = angular.copy( $scope.model.roleDataElements.length );
-                        var count = 1;
-                        angular.forEach($scope.model.stakeholderCategories, function(c){
-                            var ops = [];
-                            angular.forEach(c.categoryOptions, function(o){
-                                ops.push( o.displayName );
+
+                        DataSetFactory.getActionAndTargetDataSets().then(function(dataSets){
+                            $scope.model.dataSets = dataSets;
+                            angular.forEach($scope.model.dataSets, function(ds){
+                                for( var key in ds.organisationUnits ){
+                                    if($scope.lowestLevel < ds.organisationUnits[key]){
+                                        $scope.lowestLevel = ds.organisationUnits[key];
+                                    }
+                                }
+
+                                if( ds.dataSetType === 'action'){
+                                    if( ds.dataElements && ds.dataElements[0] && ds.dataElements[0].code ){
+                                        $scope.model.dataSetsByDataElementId[ds.dataElements[0].id] = ds;
+                                        var res = CommonUtils.getStakeholderCategoryFromDataSet(ds, $scope.model.categoryCombos, $scope.model.stakeholderCategories, $scope.model.pushedCategoryIds);
+                                        $scope.model.stakeholderCategories = res.categories;
+                                        $scope.model.pushedCategoryIds = res.categoryIds;
+                                    }
+                                }
+                                else{
+                                    $scope.model.targetDataSets.push( ds );
+                                }
                             });
-                            $scope.model.roleDataElements.push( {id: c.id, displayName: c.displayName, sortOrder: len + count, domain: 'CA', categoryOptions: ops});
+                            MetaDataFactory.getAll('ouLevels').then(function(ouLevels){
+                                angular.forEach(ouLevels, function(ol){
+                                    $scope.model.ouLevels[ol.level] = ol.displayName;
+                                });
+                                var res = CommonUtils.populateOuLevels($scope.selectedOrgUnit, $scope.model.ouLevels, $scope.lowestLevel);
+                                $scope.model.ouModes = res.ouModes;
+                                $scope.model.selectedOuMode = res.selectedOuMode;
+                            });
                         });
                     });
                 });
@@ -206,86 +220,73 @@ sunPMT.controller('PopCoverageController',
         }
         
         $scope.orgUnits = [];
-        if($scope.model.selectedOuMode.level !== $scope.selectedOrgUnit.l ){
-            $scope.orgUnits = $scope.model.children;
-        }
-        else{
-            $scope.orgUnits = [$scope.selectedOrgUnit];
-        }
+        $scope.reportingOrgUnits = [];
         
-        resetParams();
-        $scope.reportStarted = true;
-        $scope.showReportFilters = false; 
-        $scope.model.selectedDataSets = [];
-        $scope.model.selectedDataSets = $scope.model.selectedDataSets.concat( $scope.model.targetDataSets );
-        angular.forEach($scope.model.selectedIndicators, function(ind){
-            ind = CommonUtils.getNumeratorAndDenominatorIds( ind );
-            if( $scope.model.dataSetsByDataElementId[ind.numerator] ){
-                $scope.model.selectedDataSets.push( $scope.model.dataSetsByDataElementId[ind.numerator] );
-            }
-        });
-        
-        var dataValueSetUrl = 'period=' + $scope.model.selectedPeriod.id;
-        angular.forEach($scope.model.selectedDataSets, function(ds){
-            dataValueSetUrl += '&dataSet=' + ds.id;
-        });
-        
-        if( $scope.selectedOrgUnit.l === 3 ){
-            dataValueSetUrl += '&orgUnit=' + $scope.selectedOrgUnit.id;
-        }        
-        else{            
-            if( $scope.selectedOrgUnit.l+1 < 3 ){
-                angular.forEach($scope.selectedOrgUnit.c, function(c){
-                    dataValueSetUrl += '&orgUnit=' + c;
-                });
-            }
-            else {
-                dataValueSetUrl += '&orgUnit=' + $scope.selectedOrgUnit.id;
-            }
+        CommonUtils.getChildrenIds($scope.selectedOrgUnit, $scope.lowestLevel).then(function(response){
+            $scope.model.orgUnits = response.orgUnits;
+            $scope.model.orgUnitsById = response.orgUnitsById;
             
-            dataValueSetUrl += '&children=true';
-        }
-        
-        $scope.model.selectedPrograms = [];
-        $scope.model.dataElementCodesById = [];
-        $scope.model.mappedRoles = {};
-        $scope.optionCombos = [];
-        angular.forEach($scope.model.selectedDataSets, function(ds){
-            if( ds.dataElements && ds.dataElements[0] && ds.dataElements[0].code && $scope.model.programsByCode[ds.dataElements[0].code] ){                
-                var pr = $scope.model.programsByCode[ds.dataElements[0].code]; 
-                if( pr && pr.actionCode ){
-                    $scope.model.selectedPrograms.push( pr );
-                    $scope.model.reportDataElements.push( ds.dataElements[0] );
-                    $scope.model.dataElementCodesById[ds.dataElements[0].id] = ds.dataElements[0].code;
-                    $scope.optionCombos = $scope.optionCombos.concat($scope.model.categoryCombos[ds.dataElements[0].categoryCombo.id].categoryOptionCombos);
-                    $scope.model.mappedRoles[pr.actionCode] = {};
-                }                
-            }
-        });
-        
-        $scope.model.availableRoles = {};
-        var reportParams = {orgUnit: $scope.selectedOrgUnit.id, 
-                        programs: $scope.model.selectedPrograms, 
-                        period: $scope.model.selectedPeriod, 
-                        dataValueSetUrl: dataValueSetUrl};
-        var reportData = {mappedRoles: $scope.model.mappedRoles,
-                        programCodesById: $scope.model.programCodesById,
-                        roleDataElementsById: $scope.model.roleDataElementsById,
-                        whoDoesWhatCols: $scope.model.whoDoesWhatCols,
-                        availableRoles: $scope.model.availableRoles,
-                        mappedOptionCombos: $scope.model.mappedOptionCombos,
-                        dataElementCodesById: $scope.model.dataElementCodesById};
-        
-        ReportService.getReportData( reportParams, reportData ).then(function(response){            
-            $scope.model.mappedRoles = response.mappedRoles;
-            $scope.model.whoDoesWhatCols = response.whoDoesWhatCols;
-            $scope.model.availableRoles = response.availableRoles;
-            $scope.model.mappedValues = response.mappedValues;
-            $scope.model.mappedTargetValues = response.mappedTargetValues;
-            $scope.reportReady = response.reportReady;
-            $scope.showReportFilters = response.showReportFilters;
-            $scope.noDataExists = response.noDataExists;
-            $scope.reportStarted = response.reportStarted;
+            angular.forEach($scope.model.orgUnits, function(ou){
+                if(ou.level === $scope.model.selectedOuMode.level){
+                    $scope.reportingOrgUnits.push((ou));
+                }
+            });
+
+            $scope.showReportFilters = false;
+            $scope.reportStarted = true;
+            $scope.reportReady = false;
+            $scope.noDataExists = false;
+            $scope.model.reportDataElements = [];
+
+            $scope.model.selectedDataSets = [];
+            $scope.model.selectedDataSets = $scope.model.selectedDataSets.concat( $scope.model.targetDataSets );
+            $scope.model.mappedRoles = {};
+
+            angular.forEach($scope.model.selectedIndicators, function(ind){
+                ind = CommonUtils.getNumeratorAndDenominatorIds( ind );
+                if( $scope.model.dataSetsByDataElementId[ind.numerator] ){
+                    $scope.model.selectedDataSets.push( $scope.model.dataSetsByDataElementId[ind.numerator] );
+                }
+            });
+
+            var dataValueSetUrl = 'period=' + $scope.model.selectedPeriod.id;
+            angular.forEach($scope.model.selectedDataSets, function(ds){
+                dataValueSetUrl += '&dataSet=' + ds.id;
+            });
+
+            angular.forEach($scope.model.orgUnits, function(ou){
+                dataValueSetUrl += '&orgUnit=' + ou.id;
+            });
+
+            $scope.model.availableRoles = {};
+
+            var reportParams = {
+                orgUnit: $scope.selectedOrgUnit.id,
+                period: $scope.model.selectedPeriod,
+                dataValueSetUrl: dataValueSetUrl
+            };
+
+            var reportData = {
+                mappedRoles: $scope.model.mappedRoles,
+                whoDoesWhatCols: $scope.model.whoDoesWhatCols,
+                availableRoles: $scope.model.availableRoles,
+                mappedOptionCombos: $scope.model.mappedOptionCombos,
+                dataSetsByDataElementId: $scope.model.dataSetsByDataElementId,
+                categoryCodeById: $scope.model.categoryCodeById,
+                mappedCategoryOptions: $scope.model.mappedCategoryOptions
+            };
+
+            ReportService.getReportData( reportParams, reportData ).then(function(response){
+                $scope.model.mappedRoles = response.mappedRoles;
+                $scope.model.availableRoles = response.availableRoles;
+                $scope.model.mappedValues = response.mappedValues;
+                $scope.model.mappedTargetValues = response.mappedTargetValues;
+                $scope.reportReady = response.reportReady;
+                $scope.showReportFilters = response.showReportFilters;
+                $scope.noDataExists = response.noDataExists;
+                $scope.reportStarted = response.reportStarted;
+                $scope.requiredCols = CommonUtils.getRequiredCols($scope.model.availableRoles, $scope.model.selectedRole);
+            });
         });
     };
     
@@ -307,9 +308,9 @@ sunPMT.controller('PopCoverageController',
             
             if($scope.model.selectedOuMode.level !== $scope.selectedOrgUnit.l ){                
                 if( val.orgUnit === $scope.selectedOrgUnit.id || 
-                        ( $scope.model.childrenByIds[val.orgUnit] &&
-                        $scope.model.childrenByIds[val.orgUnit].path &&
-                        $scope.model.childrenByIds[val.orgUnit].path.indexOf(ou.id) !== -1)
+                        ( $scope.model.orgUnitsById[val.orgUnit] &&
+                        $scope.model.orgUnitsById[val.orgUnit].path &&
+                        $scope.model.orgUnitsById[val.orgUnit].path.indexOf(ou.id) !== -1)
                         ){                    
 
                     var curDen = $filter('filter')(filteredDenominators, {orgUnit: val.orgUnit});
@@ -344,16 +345,16 @@ sunPMT.controller('PopCoverageController',
             if( val[$scope.model.selectedRole.id] && 
                     val[$scope.model.selectedRole.id].length 
                     && val[$scope.model.selectedRole.id].indexOf( col ) !== -1){                
-                if( $scope.model.childrenIds.indexOf( val.orgUnit ) === -1 ){
+                if( !$scope.model.orgUnitsById[val.orgUnit]){
                     console.log('missing orgunit:  ', val.orgUnit);
                     return;
                 }
                 
                 if($scope.model.selectedOuMode.level !== $scope.selectedOrgUnit.l ){                    
                     if( val.orgUnit === $scope.selectedOrgUnit.id || 
-                            ( $scope.model.childrenByIds[val.orgUnit] &&
-                            $scope.model.childrenByIds[val.orgUnit].path &&
-                            $scope.model.childrenByIds[val.orgUnit].path.indexOf(ou.id) !== -1)
+                            ( $scope.model.orgUnitsById[val.orgUnit] &&
+                            $scope.model.orgUnitsById[val.orgUnit].path &&
+                            $scope.model.orgUnitsById[val.orgUnit].path.indexOf(ou.id) !== -1)
                             ){                    
                         if( !numCheckedOus[col] ){
                             numCheckedOus[col] = [];
@@ -393,16 +394,16 @@ sunPMT.controller('PopCoverageController',
         
         angular.forEach(filteredDenominators, function(val){
             //if( val[$scope.model.selectedRole.id] && val[$scope.model.selectedRole.id].length && val[$scope.model.selectedRole.id].indexOf( col ) !== -1){                
-                if( $scope.model.childrenIds.indexOf( val.orgUnit ) === -1 ){
+                if(!$scope.model.orgUnitsById[val.orgUnit]){
                     console.log('missing orgunit:  ', val.orgUnit);
                     return;
                 }
                 
                 if($scope.model.selectedOuMode.level !== $scope.selectedOrgUnit.l ){                    
                     if( val.orgUnit === $scope.selectedOrgUnit.id || 
-                            ( $scope.model.childrenByIds[val.orgUnit] &&
-                            $scope.model.childrenByIds[val.orgUnit].path &&
-                            $scope.model.childrenByIds[val.orgUnit].path.indexOf(ou.id) !== -1)
+                            ( $scope.model.orgUnitsById[val.orgUnit] &&
+                            $scope.model.orgUnitsById[val.orgUnit].path &&
+                            $scope.model.orgUnitsById[val.orgUnit].path.indexOf(ou.id) !== -1)
                             ){                    
                         if( !denCheckedOus[col] ){
                             denCheckedOus[col] = [];

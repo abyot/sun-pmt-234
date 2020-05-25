@@ -137,7 +137,7 @@
                                             ng-required="true"
                                             name="selectedRole"
                                             class="form-control"
-                                            ng-options="role as role.displayName for role in model.roleDataElements" >
+                                            ng-options="role as role.displayName for role in model.whoDoesWhatCols | filter: {domain: 'str'}" >
                                         <option value="">{{'please_select'| translate}}</option>
                                     </select>                                
                                     <div ng-messages="popCoverageForm.selectedRole.$error" ng-if="interacted(popCoverageForm.selectedRole)" class="required" ng-messages-include="../dhis-web-commons/angular-forms/error-messages.html">                        
@@ -213,7 +213,7 @@
                     </span>
                 </div>
                 <div class="clear add-default-padding vertical-spacing" id="exportTable">
-                    <div ng-repeat="ou in orgUnits">
+                    <div ng-repeat="ou in reportingOrgUnits">
                         <div class="row col-sm-12">
                             <h3>{{ou.displayName}}</h3>
                         </div>
@@ -223,7 +223,7 @@
                                     <th>
                                         {{'action'| translate}}
                                     </th>
-                                    <th ng-repeat="col in getRequiredCols()">
+                                    <th ng-repeat="col in requiredCols">
                                         {{col}}
                                     </th>
                                 </tr>
@@ -233,7 +233,7 @@
                                     <td>
                                         <span ng-class="valueExists(ou, ind)">{{ind.displayName}}</span>
                                     </td>
-                                    <td ng-repeat="col in getRequiredCols()">
+                                    <td ng-repeat="col in requiredCols">
                                         {{getValuePerRole(ou, col, ind)}}
                                     </td>
                                 </tr>

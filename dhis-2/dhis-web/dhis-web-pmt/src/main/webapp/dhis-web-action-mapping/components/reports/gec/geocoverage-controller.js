@@ -55,7 +55,6 @@ sunPMT.controller('GeoCoverageController',
         resetParams();
         if( angular.isObject($scope.selectedOrgUnit)){
 
-            $scope.model.roleDataElements = [];
             $scope.model.mappedRoles = {};
             
             $scope.model.mappedOptionCombos = [];
@@ -219,7 +218,6 @@ sunPMT.controller('GeoCoverageController',
             });
 
             $scope.model.dataSetsByDataElementId = [];
-            $scope.model.mappedRoles = {};
             $scope.optionCombos = [];
             angular.forEach($scope.model.selectedDataSets, function(ds){
                 if( ds.dataElements && ds.dataElements[0] ){

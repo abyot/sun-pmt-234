@@ -550,7 +550,9 @@ var actionMappingServices = angular.module('actionMappingServices', ['ngResource
 .service('ReportService', function($q, $filter, orderByFilter, DataValueService, CommonUtils){
     return {        
         getReportData: function(reportParams, reportData){            
-            var def = $q.defer();            
+            var def = $q.defer();
+            reportData.mappedValues = [];
+            reportData.mappedTargetValues = {};
             DataValueService.getDataValueSet( reportParams.dataValueSetUrl ).then(function( response ){
                 if( response && response.dataValues ){
                     
@@ -597,12 +599,12 @@ var actionMappingServices = angular.module('actionMappingServices', ['ngResource
                                         
                                         reportData.availableRoles[ca][dv.categoryOptionCombo] = CommonUtils.pushRoles( reportData.availableRoles[ca][dv.categoryOptionCombo], [optionNames[j]]);
                                         
-                                        /*if( reportData.mappedRoles[ca] &&
+                                        if( reportData.mappedRoles[ca] &&
                                             reportData.mappedRoles[reportData.dataElementCodesById[dv.dataElement]][dv.orgUnit] &&
                                             reportData.mappedRoles[reportData.dataElementCodesById[dv.dataElement]][dv.orgUnit][dv.categoryOptionCombo]){                            
                                             var r = reportData.mappedRoles[reportData.dataElementCodesById[dv.dataElement]][dv.orgUnit][dv.categoryOptionCombo][dv.attributeOptionCombo];
                                             if( r && angular.isObject( r ) ){
-                                                //angular.extend(dv, r);
+                                                angular.extend(dv, r);
                                             }
                                         }
                                         else{ // target values (denominators)
@@ -614,7 +616,7 @@ var actionMappingServices = angular.module('actionMappingServices', ['ngResource
                                                 reportData.mappedTargetValues[dv.dataElement][dv.orgUnit] = {};
                                             }
                                             reportData.mappedTargetValues[dv.dataElement][dv.orgUnit][dv.categoryOptionCombo] = dv.value;
-                                        }*/
+                                        }
                                     }                                    
                                 }
                             }                            
