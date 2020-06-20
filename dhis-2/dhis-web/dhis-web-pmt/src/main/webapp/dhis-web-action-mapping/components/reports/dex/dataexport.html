@@ -170,9 +170,9 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr ng-repeat="data in model.dataRows">
+                            <tr ng-repeat="de in model.reportDataElements">
                                 <td ng-repeat="header in model.dataHeaders">
-                                    {{header.domain === 'EV' ? data.roles[header.id].sort().join(", ") : data[header.id]}}
+                                    {{header.domain === 'HD' ? model.dataRows[de.id][header.id] : model.dataRows[de.id]['roles'][header.id].sort().join(", ")}}
                                 </td>                                    
                             </tr>
                         </tbody>

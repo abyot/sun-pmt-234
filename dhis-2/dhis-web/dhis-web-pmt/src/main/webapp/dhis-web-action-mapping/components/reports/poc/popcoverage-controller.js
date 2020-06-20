@@ -258,8 +258,6 @@ sunPMT.controller('PopCoverageController',
                 dataValueSetUrl += '&orgUnit=' + ou.id;
             });
 
-            $scope.model.availableRoles = {};
-
             var reportParams = {
                 orgUnit: $scope.selectedOrgUnit.id,
                 period: $scope.model.selectedPeriod,

@@ -607,16 +607,6 @@ var actionMappingServices = angular.module('actionMappingServices', ['ngResource
                                                 angular.extend(dv, r);
                                             }
                                         }
-                                        else{ // target values (denominators)
-                                            if( !reportData.mappedTargetValues[dv.dataElement] ){
-                                                reportData.mappedTargetValues[dv.dataElement] = {};
-                                                reportData.mappedTargetValues[dv.dataElement][dv.orgUnit] = {};
-                                            }
-                                            if( !reportData.mappedTargetValues[dv.dataElement][dv.orgUnit] ){
-                                                reportData.mappedTargetValues[dv.dataElement][dv.orgUnit] = {};
-                                            }
-                                            reportData.mappedTargetValues[dv.dataElement][dv.orgUnit][dv.categoryOptionCombo] = dv.value;
-                                        }
                                     }                                    
                                 }
                             }                            
