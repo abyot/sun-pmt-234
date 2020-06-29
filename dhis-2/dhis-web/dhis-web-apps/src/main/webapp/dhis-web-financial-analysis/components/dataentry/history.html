@@ -1,0 +1,92 @@
+<div class="modal-header page">
+    <h2>{{'history_audit_info'| translate}}</h2>
+</div>
+<div class="modal-body">
+
+    <div class="row">
+        <div class="col-sm-12">
+            <tabset justified="true">
+                <tab heading="{{'history'| translate}}" class="bold">                
+                    <div class="vertical-spacing">
+                        <div class="col-sm-6">
+                            <img id="historyChart" ng-src="{{historyUrl}}"/>
+                        </div>
+                        <div class="col-sm-6">
+                            {{'comment'| translate}}
+                            <textarea ng-class="getCommentNotifcationClass()" rows="5" ng-model="dataValue.comment"></textarea>
+                            <button type="button" 
+                                    class="btn btn-default small-vertical-spacing" 
+                                    ng-click="saveComment()">
+                                {{'save' | translate}}
+                            </button>
+                        </div>
+                    </div>
+                </tab>
+                <tab heading="{{'audit_trail'| translate}}" class="bold">
+                    <div class="vertical-spacing">
+                        <div class="col-sm-12">
+                            <span class="bold">{{dataElement.displayName}}</span>
+                            <table class="listTable dhis2-table-striped-border dhis2-table-hover" ng-if="dataValueAudits.length > 0">
+                                <thead>
+                                    <tr>
+                                        <th ng-repeat="col in auditColumns">
+                                            {{col.displayName}}
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-repeat="dataValueAudit in dataValueAudits">
+                                        <td ng-repeat="col in auditColumns">
+                                            <span ng-if="col.id === 'created'">
+                                                {{dataValueAudit[col.id]| date:'dd MMM yyyy HH:mm'}}
+                                            </span>
+                                            <span ng-if="col.id !== 'created'">
+                                                {{dataValueAudit[col.id]}}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tbody>                                    
+                            </table>
+                            <div class="alert alert-info" ng-if="!dataValueAudits || dataValueAudits.length === 0">
+                                {{'no_audit_trail_exists'|translate}}
+                            </div>
+                        </div>
+
+                        <div class="col-sm-12" ng-repeat="prStDe in program.programStages[0].programStageDataElements">
+                            <span class="bold">{{prStDe.dataElement.displayName}}</span>
+                            <table class="listTable dhis2-table-striped-border dhis2-table-hover" ng-if="(eventValueAudits | filter: {dataElement: {id: prStDe.dataElement.id}}).length > 0">
+                                <thead>
+                                    <tr>
+                                        <th ng-repeat="col in auditColumns">
+                                            {{col.displayName}}
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody> 
+                                    <tr ng-repeat="eventValueAudit in eventValueAudits| orderBy: 'created':reverse | filter: {dataElement: {id: prStDe.dataElement.id}}">
+                                        <td ng-repeat="col in auditColumns">
+                                            <span ng-if="col.id === 'created'">
+                                                {{eventValueAudit[col.id]| date:'dd MMM yyyy HH:mm'}}
+                                            </span>
+                                            <span ng-if="col.id !== 'created'">
+                                                {{eventValueAudit[col.id]}}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="alert alert-info" ng-if="!eventValueAudits || (eventValueAudits | filter: {dataElement: {id: prStDe.dataElement.id}}).length === 0">
+                                {{'no_audit_trail_exists'|translate}}
+                            </div>
+
+                        </div>                        
+                    </div>
+                </tab> 
+            </tabset>
+        </div>
+    </div>
+
+</div>
+<div class="modal-footer">    
+    <button class="btn btn-default" ng-click="close()">{{'close'| translate}}</button>    
+</div>

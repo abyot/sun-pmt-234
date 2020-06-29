@@ -1,0 +1,25 @@
+<span id="showLeftBar" class="hideInPrint">
+    <a href="javascript:dhis2.leftBar.showAnimated()" title="$i18n.getString('show_menu' )"><i class="fa fa-arrow-right leftBarIcon"></i></a>
+</span>
+
+<div id="leftBar">
+    <d2-left-bar></d2-left-bar>
+</div>
+
+
+<div class="page" id="mainPage">
+    <h2>{{'financial_analysis_reports'| translate}}</h2>
+    
+    <div class="row">
+        <div class="col-sm-12 remove-left-padding">
+            <div class="col-sm-6 report-type-container" ng-click="sectorLevelReport()">
+                <h2><small><i class="fa fa-table fa-2x black"></i></small><span class="horizontal-spacing"> {{'sector_level'| translate}}</span></h2>
+                {{'sector_level_description'| translate}}
+            </div>
+            <div class="col-sm-6 report-type-container" ng-click="districtLevelReport()">
+                <h2><small><i class="fa fa-map fa-2x black"></i></small><span class="horizontal-spacing"> {{'district_level'| translate}}</span></h2>
+                {{'district_level_description'| translate}}
+            </div>
+        </div>        
+    </div>
+</div>
