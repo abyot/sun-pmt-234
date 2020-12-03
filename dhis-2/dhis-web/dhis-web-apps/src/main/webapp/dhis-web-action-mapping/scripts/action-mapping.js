@@ -18,7 +18,7 @@ var batchSize = 50;
 dhis2.sunpmt.store = null;
 dhis2.tc.metaDataCached = dhis2.sunpmt.metaDataCached || false;
 dhis2.sunpmt.memoryOnly = $('html').hasClass('ie7') || $('html').hasClass('ie8');
-var adapters = [];    
+var adapters = [];
 if( dhis2.sunpmt.memoryOnly ) {
     adapters = [ dhis2.storage.InMemoryAdapter ];
 } else {
@@ -44,9 +44,9 @@ dhis2.sunpmt.store = new dhis2.storage.Store({
 /**
  * Page init. The order of events is:
  *
- * 1. Load ouwt 
- * 2. Load meta-data (and notify ouwt) 
- * 
+ * 1. Load ouwt
+ * 2. Load meta-data (and notify ouwt)
+ *
  */
 $(document).ready(function()
 {
@@ -132,37 +132,37 @@ function downloadMetaData()
     promise = promise.then( getUserAccessibleDataSets );
     promise = promise.then( getOrgUnitLevels );
     promise = promise.then( getSystemSetting );
-    
+
     //fetch category combos
     promise = promise.then( getMetaCategoryCombos );
     promise = promise.then( filterMissingCategoryCombos );
     promise = promise.then( getCategoryCombos );
-        
+
     //fetch data sets
     promise = promise.then( getMetaDataSets );
     promise = promise.then( filterMissingDataSets );
     promise = promise.then( getDataSets );
-    
+
     //fetch option sets
     promise = promise.then( getMetaOptionSets );
     promise = promise.then( filterMissingOptionSets );
     promise = promise.then( getOptionSets );
-        
+
     //fetch indicator groups
     promise = promise.then( getMetaIndicatorGroups );
     promise = promise.then( filterMissingIndicatorGroups );
     promise = promise.then( getIndicatorGroups );
-    
-    promise.done(function() {        
+
+    promise.done(function() {
         //Enable ou selection after meta-data has downloaded
         $( "#orgUnitTree" ).removeClass( "disable-clicks" );
         dhis2.tc.metaDataCached = true;
         dhis2.availability.startAvailabilityCheck();
-        console.log( 'Finished loading meta-data' );        
-        selection.responseReceived(); 
+        console.log( 'Finished loading meta-data' );
+        selection.responseReceived();
     });
 
-    def.resolve();    
+    def.resolve();
 }
 
 function getUserAccessibleDataSets(){
@@ -174,15 +174,15 @@ function getOrgUnitLevels()
     dhis2.sunpmt.store.getKeys( 'ouLevels').done(function(res){
         if(res.length > 0){
             return;
-        }        
+        }
         return dhis2.metadata.getMetaObjects('ouLevels', 'organisationUnitLevels', '../api/organisationUnitLevels.json', 'fields=id,displayName,level&paging=false', 'idb', dhis2.sunpmt.store);
     });
 }
 
-function getSystemSetting(){   
+function getSystemSetting(){
     if(localStorage['SYSTEM_SETTING']){
-       return; 
-    }    
+       return;
+    }
     return dhis2.metadata.getMetaObject(null, 'SYSTEM_SETTING', '../api/systemSettings?key=keyCalendar&key=keyDateFormat&key=multiOrganisationUnitForms', '', 'localStorage', dhis2.sunpmt.store);
 }
 
@@ -194,7 +194,7 @@ function filterMissingCategoryCombos( objs ){
     return dhis2.metadata.filterMissingObjIds('categoryCombos', dhis2.sunpmt.store, objs);
 }
 
-function getCategoryCombos( ids ){    
+function getCategoryCombos( ids ){
     return dhis2.metadata.getBatches( ids, batchSize, 'categoryCombos', 'categoryCombos', '../api/categoryCombos.json', 'paging=false&fields=id,displayName,code,skipTotal,isDefault,categoryOptionCombos[id,displayName,categoryOptions[displayName]],categories[id,displayName,code,dimension,dataDimensionType,attributeValues[value,attribute[id,name,valueType,code]],categoryOptions[id,displayName,code]]', 'idb', dhis2.sunpmt.store);
 }
 
@@ -206,8 +206,8 @@ function filterMissingDataSets( objs ){
     return dhis2.metadata.filterMissingObjIds('dataSets', dhis2.sunpmt.store, objs);
 }
 
-function getDataSets( ids ){    
-    return dhis2.metadata.getBatches( ids, batchSize, 'dataSets', 'dataSets', '../api/dataSets.json', 'paging=false&fields=id,periodType,openFuturePeriods,displayName,version,categoryCombo[id],attributeValues[value,attribute[id,name,valueType,code]],organisationUnits[id,level],dataSetElements[id,dataElement[id,code,displayName,description,formName,valueType,optionSetValue,optionSet[id],categoryCombo[id,isDefault,categories[id]]]]', 'idb', dhis2.sunpmt.store, dhis2.metadata.processObject);
+function getDataSets( ids ){
+    return dhis2.metadata.getBatches( ids, batchSize, 'dataSets', 'dataSets', '../api/dataSets.json', 'paging=false&fields=id,periodType,openFuturePeriods,displayName,version,categoryCombo[id],attributeValues[value,attribute[id,name,valueType,code]],organisationUnits[id,displayName,level],dataSetElements[id,dataElement[id,code,displayName,description,formName,valueType,optionSetValue,optionSet[id],categoryCombo[id,isDefault,categories[id]]]]', 'idb', dhis2.sunpmt.store, dhis2.metadata.processObject);
 }
 
 function getMetaOptionSets(){
@@ -218,7 +218,7 @@ function filterMissingOptionSets( objs ){
     return dhis2.metadata.filterMissingObjIds('optionSets', dhis2.sunpmt.store, objs);
 }
 
-function getOptionSets( ids ){    
+function getOptionSets( ids ){
     return dhis2.metadata.getBatches( ids, batchSize, 'optionSets', 'optionSets', '../api/optionSets.json', 'paging=false&fields=id,displayName,code,version,valueType,attributeValues[value,attribute[id,name,valueType,code]],options[id,displayName,code]', 'idb', dhis2.sunpmt.store, dhis2.metadata.processObject);
 }
 
@@ -230,6 +230,6 @@ function filterMissingIndicatorGroups( objs ){
     return dhis2.metadata.filterMissingObjIds('indicatorGroups', dhis2.sunpmt.store, objs);
 }
 
-function getIndicatorGroups( ids ){    
+function getIndicatorGroups( ids ){
     return dhis2.metadata.getBatches( ids, batchSize, 'indicatorGroups', 'indicatorGroups', '../api/indicatorGroups.json', 'paging=false&fields=id,displayName,attributeValues[value,attribute[id,name,valueType,code]],indicators[id,displayName,denominatorDescription,numeratorDescription,dimensionItem,numerator,denominator,annualized,dimensionType,indicatorType[id,displayName,factor,number]]', 'idb', dhis2.sunpmt.store, dhis2.metadata.processObject);
 }

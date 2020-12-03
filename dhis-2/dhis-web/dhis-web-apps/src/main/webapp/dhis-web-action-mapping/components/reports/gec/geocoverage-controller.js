@@ -99,8 +99,8 @@ sunPMT.controller('GeoCoverageController',
                     $scope.model.dataSets = $filter('filter')(dataSets, {dataSetType: 'action'});
                     angular.forEach($scope.model.dataSets, function(ds){
                         for( var key in ds.organisationUnits ){
-                            if($scope.lowestLevel < ds.organisationUnits[key]){
-                                $scope.lowestLevel = ds.organisationUnits[key];
+                            if($scope.lowestLevel < ds.organisationUnits[key].level){
+                                $scope.lowestLevel = ds.organisationUnits[key].level;
                             }
                         }
                         if( ds.dataElements && ds.dataElements[0] && ds.dataElements[0].code ){

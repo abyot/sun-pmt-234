@@ -35,29 +35,29 @@ dhis2.metadata.expressionRegex = /#{.*?\}/g;
 dhis2.metadata.operatorRegex   = /[#\{\}]/g;
 
 dhis2.metadata.expressionMatcher = function( obj, src, des, expressionPattern, operandPattern, src2){
-    var match;    
+    var match;
     if( src2 ){
         if( obj[src] && obj[src][src2] && expressionPattern && operandPattern && obj[des]){
-            while (match = expressionPattern.exec( obj[src][src2] ) ) {                                
-                match[0] = match[0].replace( operandPattern, '' );                
-                obj[des].push(match[0].split('.')[0]);                                
+            while (match = expressionPattern.exec( obj[src][src2] ) ) {
+                match[0] = match[0].replace( operandPattern, '' );
+                obj[des].push(match[0].split('.')[0]);
             }
-        }    
+        }
     }
     else{
         if( obj[src] && expressionPattern && operandPattern && obj[des]){
-            while (match = expressionPattern.exec( obj[src] ) ) {                                
+            while (match = expressionPattern.exec( obj[src] ) ) {
                 match[0] = match[0].replace( operandPattern, '' );
-                obj[des].push(match[0]);                                
+                obj[des].push(match[0]);
             }
-        }    
+        }
     }
-    
+
     return obj;
 };
 
 dhis2.metadata.cartesianProduct = function( arrays ){
-    
+
     var i, j, l, m, a1, o = [];
     if (!arrays || arrays.length == 0) return arrays;
 
@@ -76,73 +76,72 @@ dhis2.metadata.chunk = function( array, size ){
 	if( !array || !array.length || !size || size < 1 ){
             return [];
 	}
-	
+
 	var groups = [];
 	var chunks = array.length / size;
 	for (var i = 0, j = 0; i < chunks; i++, j += size) {
         groups[i] = array.slice(j, j + size);
     }
-	
+
     return groups;
 };
 
 dhis2.metadata.processMetaDataAttribute = function( obj )
-{    
+{
     if(!obj){
         return;
     }
-    
+
     if(obj.attributeValues){
         for(var i=0; i<obj.attributeValues.length; i++){
-            if(obj.attributeValues[i].value && obj.attributeValues[i].attribute && obj.attributeValues[i].attribute.code && obj.attributeValues[i].attribute.valueType){                
+            if(obj.attributeValues[i].value && obj.attributeValues[i].attribute && obj.attributeValues[i].attribute.code && obj.attributeValues[i].attribute.valueType){
             	if( obj.attributeValues[i].attribute.valueType === 'BOOLEAN' || obj.attributeValues[i].attribute.valueType === 'TRUE_ONLY' ){
                     if( obj.attributeValues[i].value === 'true' ){
                         obj[obj.attributeValues[i].attribute.code] = true;
-                    }                    
+                    }
             	}
             	else if( obj.attributeValues[i].attribute.valueType === 'NUMBER' && obj.attributeValues[i].value ){
                     obj[obj.attributeValues[i].attribute.code] = parseInt( obj.attributeValues[i].value );
             	}
                 else{
                     obj[obj.attributeValues[i].attribute.code] = obj.attributeValues[i].value;
-                }                
+                }
             }
         }
     }
-    
+
     //delete obj.attributeValues;
-   
-    return obj;    
+
+    return obj;
 };
 
 dhis2.metadata.getMetaObjectIds = function( objNames, url, filter )
 {
     var def = $.Deferred();
     var objs = [];
-    var url = encodeURI( url );
     $.ajax({
-        url: url,
+        url: encodeURI( url ),
         type: 'GET',
-        data:filter
+        data: encodeURI( filter )
     }).done( function(response) {
-        _.each( _.values( response[objNames] ), function ( obj ) {        
+        _.each( _.values( response[objNames] ), function ( obj ) {
         	objs.push( obj );
         });
         def.resolve( objs );
-        
+
     }).fail(function(){
         def.resolve( null );
     });
-    
-    return def.promise();    
+
+    return def.promise();
 };
 
 dhis2.metadata.filterMissingObjIds  = function( store, db, objs )
-{   
+{
     if( !objs || !objs.length || objs.length < 1){
         return;
     }
-    
+
     var mainDef = $.Deferred();
     var mainPromise = mainDef.promise();
 
@@ -158,7 +157,7 @@ dhis2.metadata.filterMissingObjIds  = function( store, db, objs )
             var d = $.Deferred();
             var p = d.promise();
             db.get(store, obj.id).done(function(o) {
-                if( !o ) {                    
+                if( !o ) {
                 	missingObjIds.push( obj.id );
                 }
                 else{
@@ -175,7 +174,7 @@ dhis2.metadata.filterMissingObjIds  = function( store, db, objs )
 
     build.done(function() {
         def.resolve();
-        promise = promise.done( function () {            
+        promise = promise.done( function () {
             mainDef.resolve( missingObjIds );
         } );
     }).fail(function(){
@@ -188,11 +187,11 @@ dhis2.metadata.filterMissingObjIds  = function( store, db, objs )
 };
 
 dhis2.metadata.getBatches = function( ids, batchSize, store, objs, url, filter, storage, db, func )
-{    
+{
     if( !ids || !ids.length || ids.length < 1){
         return;
     }
-    
+
     var batches = dhis2.metadata.chunk( ids, batchSize );
 
     var mainDef = $.Deferred();
@@ -203,8 +202,8 @@ dhis2.metadata.getBatches = function( ids, batchSize, store, objs, url, filter, 
 
     var builder = $.Deferred();
     var build = builder.promise();
-    
-    _.each( _.values( batches ), function ( batch ) {        
+
+    _.each( _.values( batches ), function ( batch ) {
         promise = promise.then(function(){
             return dhis2.metadata.fetchBatchItems( batch, store, objs, url, filter, storage, db, func );
         });
@@ -214,8 +213,8 @@ dhis2.metadata.getBatches = function( ids, batchSize, store, objs, url, filter, 
         def.resolve();
         promise = promise.done( function () {
             mainDef.resolve();
-        } );        
-        
+        } );
+
     }).fail(function(){
         mainDef.resolve( null );
     });
@@ -226,38 +225,36 @@ dhis2.metadata.getBatches = function( ids, batchSize, store, objs, url, filter, 
 };
 
 dhis2.metadata.fetchBatchItems = function( batch, store, objs, url, filter, storage, db, func )
-{   
-    var ids = '[' + batch.toString() + ']';             
-    filter = filter + '&filter=id:in:' + ids;    
-    return dhis2.metadata.getMetaObjects( store, objs, url, filter, storage, db, func );    
+{
+    var ids = '[' + batch.toString() + ']';
+    filter = filter + '&filter=id:in:' + ids;
+    return dhis2.metadata.getMetaObjects( store, objs, url, filter, storage, db, func );
 };
 
 dhis2.metadata.getMetaObjects = function( store, objs, url, filter, storage, db, func )
 {
     var def = $.Deferred();
 
-    var url = encodeURI( url );
-    
     $.ajax({
-        url: url,
+        url: encodeURI( url ),
         type: 'GET',
-        data: filter
+        data: encodeURI( filter )
     }).done(function(response) {
         if(response[objs]){
             var count = 0;
-            _.each( _.values( response[objs] ), function ( obj ) {        
+            _.each( _.values( response[objs] ), function ( obj ) {
                 obj = dhis2.metadata.processMetaDataAttribute( obj );
                 if( func ) {
                     obj = func(obj, 'organisationUnits');
-                }                
+                }
                 if( store === 'categoryCombos' ){
-                    
+
                 	if( obj.categories ){
-                        _.each( _.values( obj.categories ), function ( ca ) {                            
+                        _.each( _.values( obj.categories ), function ( ca ) {
                             if( ca.categoryOptions ){
                                 _.each( _.values( ca.categoryOptions ), function ( co ) {
                                     co.mappedOrganisationUnits = [];
-                                    if( co.organisationUnits && co.organisationUnits.length > 0 ){                                        
+                                    if( co.organisationUnits && co.organisationUnits.length > 0 ){
                                         co.mappedOrganisationUnits = $.map(co.organisationUnits, function(ou){return ou.id;});
                                     }
                                     delete co.organisationUnits;
@@ -265,21 +262,21 @@ dhis2.metadata.getMetaObjects = function( store, objs, url, filter, storage, db,
                             }
                         });
                     }
-                	
+
                     if( obj.categoryOptionCombos && obj.categories ){
                         var categoryOptions = [];
-                        _.each( _.values( obj.categories ), function ( cat ) {                            
-                            if( cat.categoryOptions ){                                
+                        _.each( _.values( obj.categories ), function ( cat ) {
+                            if( cat.categoryOptions ){
                                 categoryOptions.push(  $.map(cat.categoryOptions, function(co){return co.displayName;}) );
-                            }                            
-                        });                        
+                            }
+                        });
 
-                        var cocs = dhis2.metadata.cartesianProduct( categoryOptions );                        
-                        
+                        var cocs = dhis2.metadata.cartesianProduct( categoryOptions );
+
                         var sortedOptionCombos = [];
-                        _.each( _.values( cocs ), function ( coc ) {                        
-                            for( var i=0; i<obj.categoryOptionCombos.length; i++){                            
-                                var opts = obj.categoryOptionCombos[i].displayName.split(', ');                                
+                        _.each( _.values( cocs ), function ( coc ) {
+                            for( var i=0; i<obj.categoryOptionCombos.length; i++){
+                                var opts = obj.categoryOptionCombos[i].displayName.split(', ');
                                 var itsc = _.intersection(opts, coc);
                                 if( itsc.length === opts.length && itsc.length === coc.length ){
                                     sortedOptionCombos.push({id: obj.categoryOptionCombos[i].id, displayName: coc.join(',')} );
@@ -294,12 +291,12 @@ dhis2.metadata.getMetaObjects = function( store, objs, url, filter, storage, db,
                         else{
                             obj.categoryOptionCombos = sortedOptionCombos;
                         }*/
-                    }                    
+                    }
                 }
                 else if( store === 'dataSets' ){
-                    
+
                     if( obj.sections ){
-                        _.each(obj.sections, function(sec){                
+                        _.each(obj.sections, function(sec){
                             if( sec.indicators ){
                                 angular.forEach(sec.indicators, function(ind){
                                     ind=dhis2.metadata.processMetaDataAttribute(ind);
@@ -315,12 +312,12 @@ dhis2.metadata.getMetaObjects = function( store, objs, url, filter, storage, db,
                             }
                         });
                     }
-                    
+
                     var dataElements = [];
                     _.each(obj.dataSetElements, function(dse){
                         if( dse.dataElement ){
                             dataElements.push( dhis2.metadata.processMetaDataAttribute( dse.dataElement ) );
-                        }                            
+                        }
                     });
                     obj.dataElements = dataElements;
                     delete obj.dataSetElements;
@@ -334,26 +331,26 @@ dhis2.metadata.getMetaObjects = function( store, objs, url, filter, storage, db,
                     obj.id = count;
                 }
                 count++;
-            });            
-            
+            });
+
             if(storage === 'idb'){
-                db.setAll( store, response[objs] );                
+                db.setAll( store, response[objs] );
             }
-            if(storage === 'localStorage'){                
+            if(storage === 'localStorage'){
                 localStorage[store] = JSON.stringify(response[objs]);
-            }            
+            }
             if(storage === 'sessionStorage'){
                 var SessionStorageService = angular.element('body').injector().get('SessionStorageService');
                 SessionStorageService.set(store, response[objs]);
             }
         }
-        
+
         if(storage === 'temp'){
             def.resolve(response[objs] ? response[objs] : []);
         }
         else{
             def.resolve();
-        }    
+        }
     }).fail(function(){
         def.resolve( null );
     });
@@ -364,17 +361,15 @@ dhis2.metadata.getMetaObjects = function( store, objs, url, filter, storage, db,
 dhis2.metadata.getMetaObject = function( id, store, url, filter, storage, db )
 {
     var def = $.Deferred();
-    
+
     if(id){
         url = url + '/' + id + '.json';
     }
-     
-    var url = encodeURI( url );
-    
+
     $.ajax({
-        url: url,
-        type: 'GET',            
-        data: filter
+        url: encodeURI( url ),
+        type: 'GET',
+        data: encodeURI( filter )
     }).done( function( response ){
         if(storage === 'idb'){
             if( response && response.id) {
@@ -383,17 +378,17 @@ dhis2.metadata.getMetaObject = function( id, store, url, filter, storage, db )
         }
         if(storage === 'localStorage'){
             localStorage[store] = JSON.stringify(response);
-        }            
+        }
         if(storage === 'sessionStorage'){
             var SessionStorageService = angular.element('body').injector().get('SessionStorageService');
             SessionStorageService.set(store, response);
-        } 
-        
+        }
+
         def.resolve();
     }).fail(function(){
         def.resolve();
     });
-    
+
     return def.promise();
 };
 
@@ -412,6 +407,6 @@ dhis2.metadata.processObject = function(obj, prop){
             }
         });
         obj[prop] = oo;
-    }    
+    }
     return obj;
 };

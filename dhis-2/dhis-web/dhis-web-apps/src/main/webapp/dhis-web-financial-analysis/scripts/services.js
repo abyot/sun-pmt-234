@@ -19,7 +19,7 @@ var financialAnalysisServices = angular.module('financialAnalysisServices', ['ng
 
 /* current selections */
 .service('PeriodService', function(DateUtils){
-    
+
     this.getPeriods = function(periodType, periodOffset, futurePeriods){
         periodOffset = angular.isUndefined(periodOffset) ? 0 : periodOffset;
         futurePeriods = angular.isUndefined(futurePeriods) ? 1 : futurePeriods;
@@ -27,20 +27,20 @@ var financialAnalysisServices = angular.module('financialAnalysisServices', ['ng
         if(!periodType){
             return availablePeriods;
         }
-        
+
         var pt = new PeriodType();
         var d2Periods = pt.get(periodType).generatePeriods({offset: periodOffset, filterFuturePeriods: false, reversePeriods: false});
-        
+
         d2Periods = d2Periods.slice( 0, d2Periods.length - 1 + futurePeriods );
-                
+
         d2Periods = d2Periods.slice( d2Periods.length - 2, d2Periods.length );
         d2Periods.reverse();
-        
+
         angular.forEach(d2Periods, function(p){
             p.endDate = DateUtils.formatFromApiToUser(p.endDate);
             p.startDate = DateUtils.formatFromApiToUser(p.startDate);
             availablePeriods.push( p );
-            /*if(moment(DateUtils.getToday()).isAfter(p.endDate)){                    
+            /*if(moment(DateUtils.getToday()).isAfter(p.endDate)){
                 availablePeriods.push( p );
             }*/
         });
@@ -49,32 +49,32 @@ var financialAnalysisServices = angular.module('financialAnalysisServices', ['ng
 })
 
 /* Factory to fetch optionSets */
-.factory('OptionSetService', function($q, $rootScope, FINStorageService) { 
+.factory('OptionSetService', function($q, $rootScope, FINStorageService) {
     return {
         getAll: function(){
-            
+
             var def = $q.defer();
-            
+
             FINStorageService.currentStore.open().done(function(){
                 FINStorageService.currentStore.getAll('optionSets').done(function(optionSets){
                     $rootScope.$apply(function(){
                         def.resolve(optionSets);
-                    });                    
+                    });
                 });
-            });            
-            
-            return def.promise;            
+            });
+
+            return def.promise;
         },
-        get: function(uid){            
+        get: function(uid){
             var def = $q.defer();
-            
+
             FINStorageService.currentStore.open().done(function(){
-                FINStorageService.currentStore.get('optionSets', uid).done(function(optionSet){                    
+                FINStorageService.currentStore.get('optionSets', uid).done(function(optionSet){
                     $rootScope.$apply(function(){
                         def.resolve(optionSet);
                     });
                 });
-            });                        
+            });
             return def.promise;
         },
         getCode: function(options, key){
@@ -84,27 +84,27 @@ var financialAnalysisServices = angular.module('financialAnalysisServices', ['ng
                         return options[i].code;
                     }
                 }
-            }            
+            }
             return key;
-        },        
+        },
         getName: function(options, key){
             if(options){
-                for(var i=0; i<options.length; i++){                    
+                for(var i=0; i<options.length; i++){
                     if( key === options[i].code){
                         return options[i].displayName;
                     }
                 }
-            }            
+            }
             return key;
         }
     };
 })
 
 /* Service to fetch option combos */
-.factory('OptionComboService', function($q, $rootScope, FINStorageService) { 
+.factory('OptionComboService', function($q, $rootScope, FINStorageService) {
     return {
-        getAll: function(){            
-            var def = $q.defer();            
+        getAll: function(){
+            var def = $q.defer();
             var optionCombos = [];
             FINStorageService.currentStore.open().done(function(){
                 FINStorageService.currentStore.getAll('categoryCombos').done(function(categoryCombos){
@@ -113,14 +113,14 @@ var financialAnalysisServices = angular.module('financialAnalysisServices', ['ng
                     });
                     $rootScope.$apply(function(){
                         def.resolve(optionCombos);
-                    });                    
+                    });
                 });
-            });            
-            
-            return def.promise;            
+            });
+
+            return def.promise;
         },
-        getMappedOptionCombos: function(uid){            
-            var def = $q.defer();            
+        getMappedOptionCombos: function(uid){
+            var def = $q.defer();
             var optionCombos = [];
             FINStorageService.currentStore.open().done(function(){
                 FINStorageService.currentStore.getAll('categoryCombos').done(function(categoryCombos){
@@ -135,23 +135,23 @@ var financialAnalysisServices = angular.module('financialAnalysisServices', ['ng
                     });
                     $rootScope.$apply(function(){
                         def.resolve(optionCombos);
-                    });                    
+                    });
                 });
-            });            
-            
-            return def.promise;            
+            });
+
+            return def.promise;
         }
     };
 })
 
 /* Factory to fetch programs */
-.factory('DataSetFactory', function($q, $rootScope, $translate, storage, FINStorageService, orderByFilter, CommonUtils) { 
-  
-    return {        
-        getByOuAndProperty: function( ou, propertyName, propertyValue ){            
+.factory('DataSetFactory', function($q, $rootScope, $translate, storage, FINStorageService, orderByFilter, CommonUtils) {
+
+    return {
+        getByOuAndProperty: function( ou, propertyName, propertyValue ){
             var systemSetting = storage.get('SYSTEM_SETTING');
             var allowMultiOrgUnitEntry = systemSetting && systemSetting.multiOrganisationUnitForms ? systemSetting.multiOrganisationUnitForms : false;
-            
+
             var def = $q.defer();
             FINStorageService.currentStore.open().done(function(){
                 FINStorageService.currentStore.getAll('dataSets').done(function(dss){
@@ -164,22 +164,22 @@ var financialAnalysisServices = angular.module('financialAnalysisServices', ['ng
                     dss = angular.copy(accessibleDataSets);
                     var dataSets = [];
                     var pushedDss = [];
-                    
+
                     angular.forEach(dss, function(ds){
                         if( ds.organisationUnits.hasOwnProperty( ou.id ) ){
                             ds.entryMode = {id: 'selected', name: $translate.instant('budget_for_selected')};
                             dataSets.push(ds);
                         }
                     });
-                    
+
                     if( allowMultiOrgUnitEntry && ou.c && ou.c.length > 0 ){
                         dss = angular.copy(accessibleDataSets);
                         angular.forEach(dss, function(ds){
-                            angular.forEach(ou.c, function(c){                                    
+                            angular.forEach(ou.c, function(c){
                                 if( ds.organisationUnits.hasOwnProperty( c ) && pushedDss.indexOf( ds.id ) === -1 ){
                                     ds.entryMode = {id: 'children', name: $translate.instant('budget_for_children')};
                                     dataSets.push(ds);
-                                    pushedDss.push( ds.id );                                            
+                                    pushedDss.push( ds.id );
                                 }
                             });
                         });
@@ -188,21 +188,21 @@ var financialAnalysisServices = angular.module('financialAnalysisServices', ['ng
                         def.resolve(dataSets);
                     });
                 });
-            });            
-            return def.promise;            
+            });
+            return def.promise;
         },
         getTargetDataSets: function(){
             var def = $q.defer();
-            
+
             FINStorageService.currentStore.open().done(function(){
                 FINStorageService.currentStore.getAll('dataSets').done(function(dss){
-                    var dataSets = [];                    
+                    var dataSets = [];
                     angular.forEach(dss, function(ds){
                         if( ds.id && CommonUtils.userHasWriteAccess(ds.id) && ds.dataSetType && ds.dataSetType === 'targetGroup'){
                             dataSets.push(ds);
                         }
                     });
-                    
+
                     $rootScope.$apply(function(){
                         def.resolve(dataSets);
                     });
@@ -212,16 +212,16 @@ var financialAnalysisServices = angular.module('financialAnalysisServices', ['ng
         },
         getActionAndTargetDataSets: function(){
             var def = $q.defer();
-            
+
             FINStorageService.currentStore.open().done(function(){
                 FINStorageService.currentStore.getAll('dataSets').done(function(dss){
-                    var dataSets = [];                    
+                    var dataSets = [];
                     angular.forEach(dss, function(ds){
                         if( ds.id && CommonUtils.userHasWriteAccess(ds.id) && ds.dataSetType && ( ds.dataSetType === 'targetGroup' || ds.dataSetType === 'action') ){
                             dataSets.push(ds);
                         }
                     });
-                    
+
                     $rootScope.$apply(function(){
                         def.resolve(dataSets);
                     });
@@ -229,21 +229,21 @@ var financialAnalysisServices = angular.module('financialAnalysisServices', ['ng
             });
             return def.promise;
         },
-        
+
         getActionAndBudgetDataSets: function(){
             var def = $q.defer();
-            
+
             FINStorageService.currentStore.open().done(function(){
                 FINStorageService.currentStore.getAll('dataSets').done(function(dss){
-                    var dataSets = [];                    
+                    var dataSets = [];
                     angular.forEach(dss, function(ds){
-                        if( ds.id && CommonUtils.userHasWriteAccess(ds.id) && 
+                        if( ds.id && CommonUtils.userHasWriteAccess(ds.id) &&
                             (ds.dataSetType && ds.dataSetType === 'budget' && ds.reportCategory === 'districtLevel' ) ||
                             ds.dataSetType === 'action' ){
                             dataSets.push(ds);
                         }
                     });
-                    
+
                     $rootScope.$apply(function(){
                         def.resolve(dataSets);
                     });
@@ -253,62 +253,62 @@ var financialAnalysisServices = angular.module('financialAnalysisServices', ['ng
         },
         getSectorBudgetDataSets: function(){
             var def = $q.defer();
-            
+
             FINStorageService.currentStore.open().done(function(){
                 FINStorageService.currentStore.getAll('dataSets').done(function(dss){
-                    var dataSets = [];                    
+                    var dataSets = [];
                     angular.forEach(dss, function(ds){
-                        if( ds.id && CommonUtils.userHasWriteAccess(ds.id) && 
+                        if( ds.id && CommonUtils.userHasWriteAccess(ds.id) &&
                             (ds.dataSetType && ds.dataSetType === 'budget' && ds.reportCategory === 'sectorLevel' )){
                             dataSets.push(ds);
                         }
                     });
-                    
+
                     $rootScope.$apply(function(){
                         def.resolve(dataSets);
                     });
                 });
             });
             return def.promise;
-        },         
+        },
         get: function(uid){
-            
+
             var def = $q.defer();
-            
+
             FINStorageService.currentStore.open().done(function(){
                 FINStorageService.currentStore.get('dataSets', uid).done(function(ds){
                     $rootScope.$apply(function(){
                         def.resolve(ds);
                     });
                 });
-            });                        
-            return def.promise;            
+            });
+            return def.promise;
         },
         getByOu: function(ou, selectedDataSet){
             var def = $q.defer();
-            
+
             FINStorageService.currentStore.open().done(function(){
                 FINStorageService.currentStore.getAll('dataSets').done(function(dss){
                     var dataSets = [];
-                    angular.forEach(dss, function(ds){                            
+                    angular.forEach(dss, function(ds){
                         if(ds.organisationUnits.hasOwnProperty( ou.id ) && ds.id && CommonUtils.userHasWriteAccess(ds.id)){
                             dataSets.push(ds);
                         }
                     });
-                    
+
                     dataSets = orderByFilter(dataSets, '-displayName').reverse();
-                    
+
                     if(dataSets.length === 0){
                         selectedDataSet = null;
                     }
                     else if(dataSets.length === 1){
                         selectedDataSet = dataSets[0];
-                    } 
+                    }
                     else{
                         if(selectedDataSet){
                             var continueLoop = true;
                             for(var i=0; i<dataSets.length && continueLoop; i++){
-                                if(dataSets[i].id === selectedDataSet.id){                                
+                                if(dataSets[i].id === selectedDataSet.id){
                                     selectedDataSet = dataSets[i];
                                     continueLoop = false;
                                 }
@@ -318,70 +318,70 @@ var financialAnalysisServices = angular.module('financialAnalysisServices', ['ng
                             }
                         }
                     }
-                                        
+
                     if(!selectedDataSet || angular.isUndefined(selectedDataSet) && dataSets.legth > 0){
                         selectedDataSet = dataSets[0];
                     }
-                    
+
                     $rootScope.$apply(function(){
                         def.resolve({dataSets: dataSets, selectedDataSet: selectedDataSet});
-                    });                      
+                    });
                 });
-            });            
+            });
             return def.promise;
         }
     };
 })
 
 /* factory to fetch and process programValidations */
-.factory('MetaDataFactory', function($q, $rootScope, FINStorageService, orderByFilter) {  
-    
-    return {        
-        get: function(store, uid){            
-            var def = $q.defer();            
+.factory('MetaDataFactory', function($q, $rootScope, FINStorageService, orderByFilter) {
+
+    return {
+        get: function(store, uid){
+            var def = $q.defer();
             FINStorageService.currentStore.open().done(function(){
-                FINStorageService.currentStore.get(store, uid).done(function(obj){                    
+                FINStorageService.currentStore.get(store, uid).done(function(obj){
                     $rootScope.$apply(function(){
                         def.resolve(obj);
                     });
                 });
-            });                        
+            });
             return def.promise;
         },
-        set: function(store, obj){            
-            var def = $q.defer();            
+        set: function(store, obj){
+            var def = $q.defer();
             FINStorageService.currentStore.open().done(function(){
-                FINStorageService.currentStore.set(store, obj).done(function(obj){                    
+                FINStorageService.currentStore.set(store, obj).done(function(obj){
                     $rootScope.$apply(function(){
                         def.resolve(obj);
                     });
                 });
-            });                        
+            });
             return def.promise;
         },
         getAll: function(store){
             var def = $q.defer();
             FINStorageService.currentStore.open().done(function(){
-                FINStorageService.currentStore.getAll(store).done(function(objs){                    
-                    objs = orderByFilter(objs, '-displayName').reverse();                    
+                FINStorageService.currentStore.getAll(store).done(function(objs){
+                    objs = orderByFilter(objs, '-displayName').reverse();
                     $rootScope.$apply(function(){
                         def.resolve(objs);
                     });
-                });                
-            });            
+                });
+            });
             return def.promise;
         }
-    };        
+    };
 })
 
-.service('DataValueService', function($http, CommonUtils) {   
-    
-    return {        
+.service('DataValueService', function($http, CommonUtils) {
+
+    return {
         saveDataValue: function( dv ){
-            var url = '?de='+dv.de + '&ou='+dv.ou + '&pe='+dv.pe + '&co='+dv.co + '&cc='+dv.cc + '&cp='+dv.cp + '&value='+dv.value;            
+            var url = '?de='+dv.de + '&ou='+dv.ou + '&pe='+dv.pe + '&co='+dv.co + '&cc='+dv.cc + '&cp='+dv.cp + '&value='+dv.value;
             if( dv.comment ){
-                url += '&comment=' + dv.comment; 
-            }            
+                url += '&comment=' + dv.comment;
+            }
             var promise = $http.post('../api/dataValues.json' + url).then(function(response){
                 return response.data;
             });
@@ -399,24 +399,24 @@ var financialAnalysisServices = angular.module('financialAnalysisServices', ['ng
             });
             return promise;
         },
-        getDataValueSet: function( params ){            
-            var promise = $http.get('../api/dataValueSets.json?' + params ).then(function(response){               
+        getDataValueSet: function( params ){
+            var promise = $http.get('../api/dataValueSets.json?' + params ).then(function(response){
                 return response.data;
             }, function(response){
                 CommonUtils.errorNotifier(response);
-            });            
+            });
             return promise;
         }
-    };    
+    };
 })
 
-.service('CompletenessService', function($http, CommonUtils) {   
-    
-    return {        
+.service('CompletenessService', function($http, CommonUtils) {
+
+    return {
         get: function( ds, ou, period, children ){
             var promise = $http.get('../api/completeDataSetRegistrations.json?dataSet='+ds+'&orgUnit='+ou+'&period='+period+'&children='+children).then(function(response){
                 return response.data;
-            }, function(response){                
+            }, function(response){
                 CommonUtils.errorNotifier(response);
                 return response.data;
             });
@@ -425,7 +425,7 @@ var financialAnalysisServices = angular.module('financialAnalysisServices', ['ng
         save: function( dsr ){
             var promise = $http.post('../api/completeDataSetRegistrations.json', dsr ).then(function(response){
                 return response.data;
-            }, function(response){                
+            }, function(response){
                 CommonUtils.errorNotifier(response);
                 return response.data;
             });
@@ -434,7 +434,7 @@ var financialAnalysisServices = angular.module('financialAnalysisServices', ['ng
         delete: function( ds, pe, ou, cc, cp, multiOu){
             var promise = $http.delete('../api/completeDataSetRegistrations?ds='+ ds + '&pe=' + pe + '&ou=' + ou + '&cc=' + cc + '&cp=' + cp + '&multiOu=' + multiOu ).then(function(response){
                 return response.data;
-            }, function(response){                
+            }, function(response){
                 CommonUtils.errorNotifier(response);
                 return response.data;
             });
@@ -443,9 +443,9 @@ var financialAnalysisServices = angular.module('financialAnalysisServices', ['ng
     };
 })
 
-.service('DataValueAuditService', function($http, CommonUtils) {   
-    
-    return {        
+.service('DataValueAuditService', function($http, CommonUtils) {
+
+    return {
         getDataValueAudit: function( dv ){
             var promise = $http.get('../api/audits/dataValue.json?paging=false&de='+dv.de+'&ou='+dv.ou+'&pe='+dv.pe+'&co='+dv.co+'&cc='+dv.cc).then(function(response){
                 return response.data;
@@ -462,9 +462,9 @@ var financialAnalysisServices = angular.module('financialAnalysisServices', ['ng
     return {
         get: function( uid ){
             if( orgUnit !== uid ){
-                var url = '../api/organisationUnits.json?filter=path:like:/' + uid + '&fields=id,displayName,path,level,parent[id,displayName]&paging=false';
+                var url = '?filter=path:like:/' + uid + '&fields=id,displayName,path,level,parent[id,displayName]&paging=false';
                 url = encodeURI( url );
-                orgUnitPromise = $http.get( url ).then(function(response){
+                orgUnitPromise = $http.get( '../api/organisationUnits.json' + url ).then(function(response){
                     orgUnit = response.data.id;
                     return response.data;
                 });
@@ -475,10 +475,10 @@ var financialAnalysisServices = angular.module('financialAnalysisServices', ['ng
 })
 
 .service('ReportService', function($q, DataValueService, IndexDBService){
-    
+
     var idMapper = function( dataSets ){
-        
-        var mappedObject = {};        
+
+        var mappedObject = {};
         if( dataSets ){
             angular.forEach( dataSets, function(ds){
                 if( ds.dataElements && ds.dataElements.length > 0){
@@ -490,15 +490,15 @@ var financialAnalysisServices = angular.module('financialAnalysisServices', ['ng
         }
         return mappedObject;
     };
-    
+
     return {
         getBudgetReport: function( reportParams, reportData){
-            var orgUnits = {}, 
+            var orgUnits = {},
                 def = $q.defer(),
-                budgetDataElements = idMapper( reportData.budgetDataSets), 
+                budgetDataElements = idMapper( reportData.budgetDataSets),
                 actionDataElements = idMapper( reportData.actionDataSets);
 
-            DataValueService.getDataValueSet( reportParams.dataValueSetUrl ).then(function( response ){                
+            DataValueService.getDataValueSet( reportParams.dataValueSetUrl ).then(function( response ){
                 if( response && response.dataValues ){
                     angular.forEach(response.dataValues, function(dv){
                         var oco = reportData.mappedOptionCombos[dv.categoryOptionCombo];
@@ -510,21 +510,21 @@ var financialAnalysisServices = angular.module('financialAnalysisServices', ['ng
                             else{
                                 dv.value = parseInt( 0 );
                             }
-                            
+
                             if( !orgUnits[dv.orgUnit] ){
                                 IndexDBService.open('dhis2ou').then(function(){
                                     IndexDBService.get('ou', dv.orgUnit).then(function(ou){
                                         if( ou ){
                                             dv.orgUnitName = ou.n;
                                             orgUnits[dv.orgUnit] = ou.n;
-                                        }                            
+                                        }
                                     });
                                 });
                             }
                             else{
                                 dv.orgUnitName = orgUnits[dv.orgUnit];
                             }
-                            if( actionDataElements[dv.dataElement] && reportData.actionDataValues){                                
+                            if( actionDataElements[dv.dataElement] && reportData.actionDataValues){
                                 reportData.actionDataValues.push( dv );
                             }
                             else if( budgetDataElements[dv.dataElement] && reportData.budgetDataValues){
@@ -538,11 +538,11 @@ var financialAnalysisServices = angular.module('financialAnalysisServices', ['ng
                     reportData.actionDataElements = actionDataElements;
                     reportData.budgetDataElements = budgetDataElements;
                 }
-                else{                    
+                else{
                     reportData.showReportFilters = false;
                     reportData.noDataExists = true;
                 }
-                
+
                 reportData.reportReady = true;
                 reportData.reportStarted = false;
 
@@ -555,15 +555,15 @@ var financialAnalysisServices = angular.module('financialAnalysisServices', ['ng
 
 /*Orgunit service for local db */
 .service('IndexDBService', function($window, $q){
-    
+
     var indexedDB = $window.indexedDB;
     var db = null;
-    
+
     var open = function( dbName ){
         var deferred = $q.defer();
-        
+
         var request = indexedDB.open( dbName );
-        
+
         request.onsuccess = function(e) {
           db = e.target.result;
           deferred.resolve();
@@ -575,11 +575,11 @@ var financialAnalysisServices = angular.module('financialAnalysisServices', ['ng
 
         return deferred.promise;
     };
-    
+
     var get = function(storeName, uid){
-        
+
         var deferred = $q.defer();
-        
+
         if( db === null){
             deferred.reject("DB not opened");
         }
@@ -587,14 +587,14 @@ var financialAnalysisServices = angular.module('financialAnalysisServices', ['ng
             var tx = db.transaction([storeName]);
             var store = tx.objectStore(storeName);
             var query = store.get(uid);
-                
+
             query.onsuccess = function(e){
-                deferred.resolve(e.target.result);           
+                deferred.resolve(e.target.result);
             };
         }
         return deferred.promise;
     };
-    
+
     return {
         open: open,
         get: get

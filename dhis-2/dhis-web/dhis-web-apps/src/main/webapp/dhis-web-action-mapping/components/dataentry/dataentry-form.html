@@ -1,6 +1,6 @@
 <div ng-if="model.selectedDataSet && model.selectedPeriod && model.categoryOptionsReady">
 
-    <div class="add-default-right-padding vertical-spacing">        
+    <div class="add-default-right-padding vertical-spacing">
         <div class="col-sm-12 selectionArea">
             <span class="bold small-vertical-spacing">{{'role_info_1'| translate}}</span><i class="fa fa-question-circle superscript" tooltip="{{'stakeholder_description'| translate}}" tooltip-class="custom-tooltip-class"></i><br>
             <span class="small-vertical-spacing">{{'role_info_2'| translate}}</span>
@@ -12,20 +12,20 @@
                             {{dataElement.displayName}}
                         </td>
                     </tr>
-                </thead>                            
+                </thead>
                 <tr>
                     <td ng-repeat="dataElement in model.stakeholderDataElements">
-                        <ui-select multiple 
-                                   ng-model="model.stakeholderRoles[commonOrgUnit][dataElement.id][dataElement.code]" 
+                        <ui-select multiple
+                                   ng-model="model.stakeholderRoles[commonOrgUnit][dataElement.id][dataElement.code]"
                                    ng-disabled="model.rolesAreDifferent && !model.overrideRoles"
                                    on-select="saveRole(dataElement.id, dataElement.code)"
                                    on-remove="saveRole(dataElement.id, dataElement.code)"
                                    theme="bootstrap">
                             <ui-select-match allow-clear="true"
-                                             class="form-control-ui-select" 
+                                             class="form-control-ui-select"
                                              placeholder="{{'select_or_search' | translate}}">
                                 {{$item.displayName}}
-                                             
+
                             </ui-select-match>
                             <ui-select-choices repeat="option.displayName as option in dataElement.optionSet.options | filter: $select.search | limitTo:maxOptionSize">
                                 <div ng-bind-html="option.displayName | highlight: $select.search"></div>
@@ -34,37 +34,20 @@
                     </td>
                 </tr>
             </table>
-            
-            <span>{{'role_info_3'|translate}}</span>
-            <span class="anchor-color"><i class="fa fa-users fa-2x"></i></span>
-            <span>{{'role_info_4'|translate}}</span>
-            <div ng-if="model.rolesAreDifferent">
-                <div class="vertical-spacing">
-                    {{'role_override_info'|translate}}
-                    <form>                    
-                        <input type="checkbox"
-                            ng-model="model.overrideRoles"
-                            name="roleOverride"
-                            ng-change="overrideRole()" />
-                        <label for="roleOverride" class="horizontal-spacing">
-                            {{'override_roles' | translate}}
-                        </label>
-                    </form>
-                </div>                
-            </div>
         </div>
     </div>
 
     <div ng-if="model.allowMultiOrgUnitEntry && model.selectedDataSet.entryMode === 'multiple'">
-        
+
         <div class="remove-left-padding vertical-spacing">
             <div class="col-sm-6 ">
                 <div ng-repeat="dataElement in model.selectedDataSet.dataElements">
                     <table class="table table-bordered table-condensed vertical-spacing">
                         <tr>
-                            <th class="active pull-center" colspan="{{model.selectedCategoryCombo.categoryOptionCombos.length + 2}}">
+                            <td></td>
+                            <td class="active pull-center" colspan="{{model.selectedCategoryCombo.categoryOptionCombos.length + 2}}">
                                 {{dataElement.displayName}}
-                            </th>
+                            </td>
                         </tr>
                         <tr>
                             <th class="active">
@@ -73,44 +56,36 @@
                             <th class="active pull-center" ng-repeat="oco in model.selectedCategoryCombos[dataElement.categoryCombo.id].categoryOptionCombos">
                                 {{oco.displayName !== 'default' ? oco.displayName : 'value' | translate }}
                             </th>
-                            <th class="active pull-center">
-                                {{'area_specific_stakeholders' | translate}}
-                            </th>
                         </tr>
-                        <tr ng-repeat="ou in selectedOrgUnit.c" ng-if="model.selectedDataSet.organisationUnits[ou]">
+                        <tr ng-repeat="ou in selectedOrgUnit.c" ng-if="model.selectedDataSet.organisationUnits[ou].id">
                             <td>
-                                {{model.selectedDataSet.organisationUnits[ou]}}                                
+                                {{model.selectedDataSet.organisationUnits[ou].displayName}}
                             </td>
                             <td ng-repeat="oco in model.selectedCategoryCombo.categoryOptionCombos">
-                                <input type="text" 
-                                       class="form-control pull-center" 
+                                <input type="text"
+                                       class="form-control pull-center"
                                        ng-class="getInputNotifcationClass(ou, dataElement.id, oco.id)"
                                        ng-model="model.dataValues[ou][dataElement.id][oco.id].value"
                                        ng-dblclick="getAuditInfo(dataElement, ou, oco, model.dataValues[ou][dataElement.id][oco.id].value, model.dataValues[ou][dataElement.id][oco.id].comment)"
                                        d2-blur="saveDataValue(ou, dataElement.id, oco.id)">
-                            </td>
-                            <td class="pull-center">
-                                <a ng-click="showEditStakeholderRoles(ou, model.selectedDataSet.organisationUnits[ou])" title="{{'edit_stakeholder_roles'| translate}}">
-                                    <span class="mouse-pointer anchor-color"><i class="fa fa-users fa-2x"></i></span>
-                                </a>
                             </td>
                         </tr>
                     </table>
                 </div>
             </div>
         </div>
-        
+
         <div class="clear">
             <div class="col-sm-6 selectionArea">
-                <button type="button" 
-                        class="btn btn-primary" 
-                        ng-disabled="model.dataSetCompletness[model.selectedAttributeOptionCombo]" 
+                <button type="button"
+                        class="btn btn-primary"
+                        ng-disabled="model.dataSetCompletness[model.selectedAttributeOptionCombo]"
                         ng-click="saveCompletness(selectedOrgUnit.id, model.allowMultiOrgUnitEntry)">
                     {{'mark_complete'| translate}}
                 </button>
-                <button type="button" 
-                        class="btn btn-danger small-horizontal-spacing" 
-                        ng-disabled="!model.dataSetCompletness[model.selectedAttributeOptionCombo]" 
+                <button type="button"
+                        class="btn btn-danger small-horizontal-spacing"
+                        ng-disabled="!model.dataSetCompletness[model.selectedAttributeOptionCombo]"
                         ng-click="deleteCompletness(selectedOrgUnit.id, model.allowMultiOrgUnitEntry)">
                     {{'mark_incomplete'| translate}}
                 </button>
@@ -120,7 +95,7 @@
     </div>
 
     <div class="row" ng-if="!model.allowMultiOrgUnitEntry || model.selectedDataSet.entryMode === 'single'">
-        
+
         <div class="col-sm-6 vertical-spacing">
             <div ng-repeat="dataElement in model.selectedDataSet.dataElements">
                 <table class="table table-bordered table-condensed">
@@ -130,9 +105,6 @@
                             <th class="active pull-center" ng-repeat="oco in model.selectedCategoryCombo.categoryOptionCombos">
                                 {{oco.displayName}}
                             </th>
-                            <th class="active pull-center">
-                                {{'area_specific_stakeholders' | translate}}
-                            </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -141,23 +113,18 @@
                                 {{dataElement.displayName}}
                             </td>
                             <td ng-repeat="oco in model.selectedCategoryCombo.categoryOptionCombos">
-                                <input type="text" 
-                                       class="form-control pull-center" 
+                                <input type="text"
+                                       class="form-control pull-center"
                                        ng-class="getInputNotifcationClass(selectedOrgUnit.id, dataElement.id, oco.id)"
                                        ng-model="model.dataValues[selectedOrgUnit.id][dataElement.id][oco.id].value"
                                        d2-blur="saveDataValue(selectedOrgUnit.id, dataElement.id, oco.id)">
-                            </td>
-                            <td class="pull-center">
-                                <a ng-click="showEditStakeholderRoles(selectedOrgUnit.id, model.selectedDataSet.organisationUnits[selectedOrgUnit.id])" title="{{'edit_stakeholder_roles'| translate}}">
-                                    <span class="mouse-pointer anchor-color"><i class="fa fa-users fa-2x"></i></span>
-                                </a>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
-        
+
     </div>
 
 </div>

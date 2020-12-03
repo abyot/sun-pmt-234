@@ -145,8 +145,8 @@ sunPMT.controller('PopCoverageController',
                             $scope.model.dataSets = dataSets;
                             angular.forEach($scope.model.dataSets, function(ds){
                                 for( var key in ds.organisationUnits ){
-                                    if($scope.lowestLevel < ds.organisationUnits[key]){
-                                        $scope.lowestLevel = ds.organisationUnits[key];
+                                    if($scope.lowestLevel < ds.organisationUnits[key].level){
+                                        $scope.lowestLevel = ds.organisationUnits[key].level;
                                     }
                                 }
 
