@@ -360,16 +360,16 @@ var actionMappingServices = angular.module('actionMappingServices', ['ngResource
 
     return {
         saveDataValue: function( dv ){
-
             var url = '?de='+dv.de + '&ou='+dv.ou + '&pe='+dv.pe + '&co='+dv.co + '&cc='+dv.cc + '&cp='+dv.cp + '&value='+dv.value;
-
+            url = encodeURI( url );
             var promise = $http.post('../api/dataValues.json' + url).then(function(response){
                 return response.data;
             });
             return promise;
         },
         getDataValue: function( dv ){
-            var promise = $http.get('../api/dataValues.json?de='+dv.de+'&ou='+dv.ou+'&pe='+dv.pe).then(function(response){
+            var url = encodeURI('?de='+dv.de+'&ou='+dv.ou+'&pe='+dv.pe);
+            var promise = $http.get('../api/dataValues.json' + url).then(function(response){
                 return response.data;
             });
             return promise;
@@ -391,6 +391,7 @@ var actionMappingServices = angular.module('actionMappingServices', ['ngResource
         },
         saveComment: function( dv ){
             var url = '?de='+dv.de + '&ou='+dv.ou + '&pe='+dv.pe + '&co='+dv.co + '&cc='+dv.cc + '&cp='+dv.cp + '&comment=' + dv.comment;
+            url = encodeURI( url );
             var promise = $http.post('../api/dataValues.json' + url).then(function(response){
                 return response.data;
             });
@@ -403,7 +404,8 @@ var actionMappingServices = angular.module('actionMappingServices', ['ngResource
 
     return {
         get: function( ds, ou, startDate, endDate, children ){
-            var promise = $http.get('../api/completeDataSetRegistrations?dataSet='+ds+'&orgUnit='+ou+'&startDate='+startDate+'&endDate='+endDate+'&children='+children).then(function(response){
+            var url = encodeURI('?dataSet='+ds+'&orgUnit='+ou+'&startDate='+startDate+'&endDate='+endDate+'&children='+children);
+            var promise = $http.get('../api/completeDataSetRegistrations' + url).then(function(response){
                 return response.data;
             }, function(response){
                 CommonUtils.errorNotifier(response);
@@ -420,7 +422,8 @@ var actionMappingServices = angular.module('actionMappingServices', ['ngResource
             return promise;
         },
         save: function( ds, pe, ou, cc, cp, multiOu){
-            var promise = $http.post('../api/completeDataSetRegistrations?ds='+ ds + '&pe=' + pe + '&ou=' + ou + '&cc=' + cc + '&cp=' + cp + '&multiOu=' + multiOu ).then(function(response){
+            var url = encodeURI( '?ds='+ ds + '&pe=' + pe + '&ou=' + ou + '&cc=' + cc + '&cp=' + cp + '&multiOu=' + multiOu );
+            var promise = $http.post('../api/completeDataSetRegistrations' + url).then(function(response){
                 return response.data;
             }, function(response){
                 CommonUtils.errorNotifier(response);
@@ -428,7 +431,8 @@ var actionMappingServices = angular.module('actionMappingServices', ['ngResource
             return promise;
         },
         delete: function( ds, pe, ou, cc, cp, multiOu){
-            var promise = $http.delete('../api/completeDataSetRegistrations?ds='+ ds + '&pe=' + pe + '&ou=' + ou + '&cc=' + cc + '&cp=' + cp + '&multiOu=' + multiOu ).then(function(response){
+            var url = encodeURI( '?ds='+ ds + '&pe=' + pe + '&ou=' + ou + '&cc=' + cc + '&cp=' + cp + '&multiOu=' + multiOu );
+            var promise = $http.delete('../api/completeDataSetRegistrations' + url ).then(function(response){
                 return response.data;
             }, function(response){
                 CommonUtils.errorNotifier(response);
@@ -442,7 +446,8 @@ var actionMappingServices = angular.module('actionMappingServices', ['ngResource
 
     return {
         getDataValueAudit: function( dv ){
-            var promise = $http.get('../api/audits/dataValue.json?paging=false&de='+dv.de+'&ou='+dv.ou+'&pe='+dv.pe+'&co='+dv.co+'&cc='+dv.cc).then(function(response){
+            var url = encodeURI( '?paging=false&de='+dv.de+'&ou='+dv.ou+'&pe='+dv.pe+'&co='+dv.co+'&cc='+dv.cc );
+            var promise = $http.get('../api/audits/dataValue.json' + url ).then(function(response){
                 return response.data;
             }, function(response){
                 CommonUtils.errorNotifier(response);
@@ -474,7 +479,7 @@ var actionMappingServices = angular.module('actionMappingServices', ['ngResource
             var def = $q.defer();
             reportData.mappedValues = [];
             reportData.mappedTargetValues = {};
-            DataValueService.getDataValueSet( reportParams.dataValueSetUrl ).then(function( response ){
+            DataValueService.getDataValueSet( encodeURI(reportParams.dataValueSetUrl) ).then(function( response ){
                 if( response && response.dataValues ){
 
                     angular.forEach(response.dataValues, function(dv){
